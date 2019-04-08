@@ -7,7 +7,6 @@ from enum import Enum
 from typing import List, NamedTuple, Callable, Optional
 import random
 from math import sqrt
-from generic_search import dfs, bfs, node_to_path, astar, Node
 
 
 """
@@ -52,8 +51,57 @@ class Maze:
                     # 初始化无法行走的路
                     self._grid[row][column] = Cell.BLOCKED
 
+    def mark(self, path: List[MazeLocation]):
+        # 标记走过的路程
+        for maze_location in path:
+            self._grid[maze_location.row][maze_location.column] = Cell.PATH
+        self._grid[self.start.row][self.start.column] = Cell.START
+        self._grid[self.goal.row][self.goal.column] = Cell.GOAL
+
+    def clear(self, path: List[MazeLocation]):
+        # 清除标记
+        for maze_location in path:
+            self._grid[maze_location.row][maze_location.column] = Cell.EMPTY
+        self._grid[self.start.row][self.start.column] = Cell.START
+        self._grid[self.goal.row][self.goal.column] = Cell.GOAL
+
+    def goal_test(self, ml: MazeLocation) -> bool:
+        return ml == self.goal
+
+    def successors(self, ml: MazeLocation) -> List[MazeLocation]:
+        # 求出可走路径
+        locations: List[MazeLocation] = []
+        if ml.row + 1 < self._rows and self._grid[ml.row + 1][ml.column] != Cell.BLOCKED:
+            locations.append(MazeLocation(ml.row + 1, ml.column))
+        if ml.row - 1 > 0 and self._grid[ml.row - 1][ml.column] != Cell.BLOCKED:
+            locations.append(MazeLocation(ml.row - 1, ml.column))
+        if ml.column + 1 < self._columns and self._grid[ml.row][ml.column + 1] != Cell.BLOCKED:
+            locations.append(MazeLocation(ml.row, ml.column + 1))
+        if ml.column - 1 > 0 and self._grid[ml.row][ml.column - 1] != Cell.BLOCKED:
+            locations.append(MazeLocation(ml.row, ml.column - 1))
+
+        return locations
+
     def __str__(self):
         output: str = ""
         for row in self._grid:
             output += "".join([c.value for c in row]) + "\n"
         return output
+
+
+def euclidean_distance(goal: MazeLocation) -> Callable[[MazeLocation], float]:
+    # 直线距离
+    def distance(ml: MazeLocation):
+        xdist: int = ml.column - goal.column
+        ydist: int = ml.row - goal.row
+        return sqrt((xdist * xdist) + (ydist * ydist))
+    return distance
+
+
+def manhattan_distance(goal: MazeLocation) -> Callable[[MazeLocation], float]:
+    # 最近距离
+    def distance(ml: MazeLocation):
+        xdist: int = abs(ml.column - goal.column)
+        ydist: int = abs(ml.row - goal.row)
+        return (xdist + ydist)
+    return distance
