@@ -77,6 +77,23 @@ def remove_at_end(head: Node) -> None:
         head.next = None
 
 
+class Solution(object):
+    def hasCycle(self, head):
+        """
+        :type head: ListNode
+        :rtype: bool
+        """
+        if not head:
+            return False
+        fast = head
+        slow = head
+        while (fast != None and fast.next != None):
+            fast = fast.next.next
+            slow = slow.next
+            if fast == slow:
+                return True
+
+        return False
 
 if __name__ == "__main__":
     node1 = Node(1)
